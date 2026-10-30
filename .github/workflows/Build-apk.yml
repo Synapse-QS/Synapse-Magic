@@ -1,4 +1,4 @@
-name: Build & Verify
+name: Build APK
 
 on:
   push:
@@ -10,7 +10,11 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    # إذا كانت الأسرار Environment secrets، فعّل السطر التالي وحدد اسم البيئة
+
+    # ✅ مهلة زمنية لتجنب بقاء المهمة عالقة في الطابور
+    timeout-minutes: 30
+
+    # إذا كانت الأسرار Environment secrets، فعّل السطر التالي
     # environment: production
 
     steps:
@@ -41,14 +45,13 @@ jobs:
             echo "::error title=Secret::GOOGLE_WEB_CLIENT_ID is empty or not configured"
             exit 1
           fi
-          # نكتب في local.properties بجذر المشروع (الذي يقرأه build.gradle)
           {
             echo "SUPABASE_URL=$SUPABASE_URL"
             echo "GOOGLE_WEB_CLIENT_ID=$GOOGLE_WEB_CLIENT_ID"
           } >> local.properties
           echo "✅ local.properties updated (values hidden)"
 
-      # ✅ البناء مع تمرير الأسرار كمتغيرات بيئة أيضاً (احتياطي)
+      # ✅ البناء مع تمرير الأسرار كمتغيرات بيئة (احتياطي)
       - name: Build release
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
@@ -85,7 +88,7 @@ jobs:
 
           exit "$fail"
 
-      # (اختياري) رفع APK كـ artifact
+      # ✅ رفع APK كـ artifact
       - name: Upload APK
         if: success()
         uses: actions/upload-artifact@v4
